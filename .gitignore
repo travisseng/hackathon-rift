@@ -1,0 +1,84 @@
+# macOS
+.DS_Store
+# Icon files
+.AppleDouble
+.LSOverride
+
+# Thumbnails and windows metadata
+Thumbs.db
+
+# Editor temporary files
+*~
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.pyc
+*.pyd
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+__pypackages__/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+venv*/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Pytest, coverage, and type checkers
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Databases and local state
+*.sqlite3
+*.db
+counters.db
+counters.json
+
+# Environment files (local secrets)
+.env
+.env.*
+env.local
+
+# Node / Frontend
+node_modules/
+/.vite/
+dist/
+build/
+*.tsbuildinfo
+
+# Misc
+.DS_Store
+.cache/
+
+# Optional: package lockfiles and lock directories are tracked by default.
+# Uncomment if you want to ignore them too (not recommended for apps):
+# package-lock.json
+# yarn.lock
