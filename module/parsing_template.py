@@ -35,21 +35,19 @@ def parse_league(league_json):
     """
     """
     parsed_league = []
-    for queueType in league_json:
-
-        parsed_league.append({
-            "puuid": league_json.get("puuid"),
-            "leagueId": league_json.get("leagueId"),
-            "queueType": league_json.get("queueType"),
-            "tier": league_json.get("tier"),
-            "rank": league_json.get("rank"),
-            "leaguePoints": league_json.get("leaguePoints"),
-            "wins": league_json.get("wins"),
-            "losses": league_json.get("losses"),
-            "veteran": league_json.get("veteran"),
-            "inactive": league_json.get("inactive"),
-            "freshBlood": league_json.get("freshBlood"),
-            "hotStreak": league_json.get("hotStreak")
-        })
+    parsed_league.append({
+        "puuid": league_json.get("puuid"),
+        "leagueId": league_json.get("leagueId"),
+        "queueType": league_json.get("queueType"),
+        "tier": league_json.get("tier"),
+        "rank": league_json.get("rank"),
+        "leaguePoints": league_json.get("leaguePoints"),
+        "wins": league_json.get("wins"),
+        "losses": league_json.get("losses"),
+        "veteran": league_json.get("veteran"),
+        "inactive": league_json.get("inactive"),
+        "freshBlood": league_json.get("freshBlood"),
+        "hotStreak": league_json.get("hotStreak")
+    })
         
     return parsed_league
