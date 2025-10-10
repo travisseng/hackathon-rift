@@ -1,0 +1,4 @@
+player,death_time,deaths_amount,kills_amount,total_damage_dealt,total_damage_to_champions,pentakills,quadra_kills,triple_kills,skillshots_hit,first_blood_kill,dragon_takedowns,team_baron_kills,total_minions_killed,wards_placed,wards_killed,individual_position,champion_name,kda,epic_monster_steals
+Stase,339,9,7,165898,29147,0,0,0,,False,0,0,201,8,2,MIDDLE,Diana,2.111111111111111,0
+Stase,122,6,0,56538,2845,0,0,0,,False,0,0,125,7,2,MIDDLE,Yone,0.16666666666666666,0
+Stase,480,17,1,70201,22129,0,0,0,,False,2,2,53,37,8,UTILITY,Karma,1.1764705882352942,0
