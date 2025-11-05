@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import StatCard from './StatCard';
-import { CardDeck as CardDeckType } from '../types/stats';
+import { CardDeck as CardDeckType, StatCard as StatCardType } from '../types/stats';
 
 interface CardDeckProps {
   primaryDeck: CardDeckType;
@@ -10,93 +9,67 @@ interface CardDeckProps {
 }
 
 export default function CardDeck({ primaryDeck, secondaryDeck }: CardDeckProps) {
-  const [showingPrimary, setShowingPrimary] = useState(true);
-  const [isFlipping, setIsFlipping] = useState(false);
+  const [cards, setCards] = useState<StatCardType[]>(primaryDeck.cards);
+  const [rerollingIndex, setRerollingIndex] = useState<number | null>(null);
+  const [availableCards] = useState<StatCardType[]>([...primaryDeck.cards, ...secondaryDeck.cards]);
 
-  const currentDeck = showingPrimary ? primaryDeck : secondaryDeck;
+  const handleIndividualReroll = (index: number) => {
+    setRerollingIndex(index);
 
-  const handleReroll = () => {
-    setIsFlipping(true);
+    // Quick reroll animation
     setTimeout(() => {
-      setShowingPrimary(!showingPrimary);
-      setIsFlipping(false);
+      const newCards = [...cards];
+      // Get a random card from available cards that's not currently displayed
+      const availableAlternatives = availableCards.filter(
+        (card) => !cards.some((displayedCard) => displayedCard.id === card.id)
+      );
+
+      if (availableAlternatives.length > 0) {
+        const randomCard = availableAlternatives[Math.floor(Math.random() * availableAlternatives.length)];
+        newCards[index] = randomCard;
+        setCards(newCards);
+      }
+
+      setRerollingIndex(null);
     }, 300);
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-12">
-      {/* Header */}
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+      {/* TFT-style header */}
       <motion.div
-        className="text-center mb-12"
-        initial={{ opacity: 0, y: -20 }}
+        className="text-center mb-16"
+        initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
       >
-        <h1 className="text-5xl font-black text-white mb-4 drop-shadow-lg">
-          Your Year in League
+        <h1 className="text-6xl font-black text-white mb-4 drop-shadow-2xl tracking-tight">
+          Choose One
         </h1>
-        <p className="text-xl text-gray-300">
-          {showingPrimary ? 'Your Top Stats' : 'More Insights'}
+        <p className="text-2xl text-gray-300 font-medium">
+          Your Year in League
         </p>
       </motion.div>
 
-      {/* Card Grid */}
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12"
-        key={currentDeck.deck_type}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        {currentDeck.cards.map((card, index) => (
-          <motion.div
-            key={card.id}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.5 }}
-          >
-            <StatCard
-              card={card}
-              isFlipped={isFlipping}
-              onShare={() => console.log('Share card:', card.id)}
-            />
-          </motion.div>
-        ))}
-      </motion.div>
+      {/* TFT Augment-style card selection */}
+      <div className="flex flex-col lg:flex-row items-start justify-center gap-12">
+        <AnimatePresence mode="wait">
+          {cards.map((card, index) => (
+            <div key={index} className="flex items-center justify-center">
+              <StatCard
+                card={card}
+                onReroll={() => handleIndividualReroll(index)}
+                isRerolling={rerollingIndex === index}
+              />
+            </div>
+          ))}
+        </AnimatePresence>
+      </div>
 
-      {/* Reroll Button */}
-      <motion.div
-        className="flex justify-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        <button
-          onClick={handleReroll}
-          disabled={isFlipping}
-          className="group relative px-8 py-4 bg-gradient-to-r from-lol-blue to-lol-blue-dark text-white font-bold text-lg rounded-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-        >
-          <span className="flex items-center gap-3">
-            <RefreshCw
-              size={24}
-              className={`transition-transform ${isFlipping ? 'animate-spin' : 'group-hover:rotate-180'}`}
-            />
-            {showingPrimary ? 'Show More Stats' : 'Back to Top Stats'}
-          </span>
-        </button>
-      </motion.div>
-
-      {/* Indicator */}
-      <div className="flex justify-center gap-2 mt-8">
-        <div
-          className={`w-3 h-3 rounded-full transition-all ${
-            showingPrimary ? 'bg-lol-gold w-8' : 'bg-gray-500'
-          }`}
-        />
-        <div
-          className={`w-3 h-3 rounded-full transition-all ${
-            !showingPrimary ? 'bg-lol-gold w-8' : 'bg-gray-500'
-          }`}
-        />
+      {/* Subtle background effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
     </div>
   );

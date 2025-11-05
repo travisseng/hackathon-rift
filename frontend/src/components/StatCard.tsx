@@ -1,115 +1,142 @@
 import { motion } from 'framer-motion';
 import { StatCard as StatCardType } from '../types/stats';
-import { Share2 } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 interface StatCardProps {
   card: StatCardType;
-  isFlipped: boolean;
-  onShare?: () => void;
+  onReroll?: () => void;
+  isRerolling?: boolean;
 }
 
-export default function StatCard({ card, isFlipped, onShare }: StatCardProps) {
-  const rarityBorder = {
-    common: 'border-gray-400',
-    rare: 'border-blue-400',
-    epic: 'border-purple-500',
-    legendary: 'border-yellow-400',
+export default function StatCard({ card, onReroll, isRerolling = false }: StatCardProps) {
+  // TFT-style tier colors and effects
+  const getTierStyle = () => {
+    switch (card.rarity) {
+      case 'legendary': // Prismatic
+        return {
+          border: 'border-4 border-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 p-[4px]',
+          glow: 'shadow-2xl shadow-purple-500/50 animate-pulse',
+          innerBg: 'bg-gradient-to-br from-purple-900/90 to-pink-900/90',
+          shimmer: true,
+        };
+      case 'epic': // Gold
+        return {
+          border: 'border-4 border-yellow-400',
+          glow: 'shadow-xl shadow-yellow-500/50',
+          innerBg: 'bg-gradient-to-br from-yellow-900/80 to-orange-900/80',
+          shimmer: false,
+        };
+      case 'rare': // Silver
+        return {
+          border: 'border-4 border-gray-300',
+          glow: 'shadow-lg shadow-gray-400/40',
+          innerBg: 'bg-gradient-to-br from-gray-800/80 to-slate-800/80',
+          shimmer: false,
+        };
+      default: // Common
+        return {
+          border: 'border-2 border-gray-600',
+          glow: '',
+          innerBg: 'bg-gradient-to-br from-gray-900/80 to-gray-800/80',
+          shimmer: false,
+        };
+    }
   };
 
-  const rarityGlow = {
-    common: '',
-    rare: 'shadow-lg shadow-blue-400/50',
-    epic: 'shadow-lg shadow-purple-500/50',
-    legendary: 'shadow-2xl shadow-yellow-400/70 animate-pulse',
-  };
+  const tierStyle = getTierStyle();
 
   return (
-    <motion.div
-      className="relative w-full aspect-[2/3] perspective-1000"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
+    <div className="flex flex-col items-center gap-4">
+      {/* Card - AnimatePresence for smooth transitions */}
       <motion.div
-        className={`relative w-full h-full rounded-xl border-4 ${rarityBorder[card.rarity]} ${rarityGlow[card.rarity]} overflow-hidden`}
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.6, ease: 'easeInOut' }}
-        style={{ transformStyle: 'preserve-3d' }}
+        key={card.id}
+        className="relative w-80"
+        initial={{ opacity: 0, scale: 0.9, rotateY: -90 }}
+        animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+        exit={{ opacity: 0, scale: 0.9, rotateY: 90 }}
+        transition={{ duration: 0.4, ease: 'easeInOut' }}
       >
-        {/* Card Front */}
-        <div
-          className="absolute inset-0 backface-hidden"
-          style={{
-            backgroundColor: card.theme.background_color,
-            backgroundImage: `linear-gradient(135deg, ${card.theme.background_color} 0%, ${card.theme.accent_color} 100%)`,
-          }}
-        >
-          {/* Artwork Background */}
-          <div
-            className="absolute inset-0 opacity-30"
-            style={{
-              backgroundImage: `url(${card.theme.artwork_url})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          />
+        {/* Outer border with tier styling */}
+        <div className={`relative rounded-2xl ${tierStyle.border} ${tierStyle.glow}`}>
+          {/* Inner card content - Fixed height */}
+          <div className={`relative rounded-xl ${tierStyle.innerBg} overflow-hidden`} style={{ minHeight: '450px' }}>
+            {/* Shimmer effect for prismatic */}
+            {tierStyle.shimmer && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+            )}
 
-          {/* Content */}
-          <div className="relative h-full flex flex-col justify-between p-6 text-white">
-            {/* Header */}
-            <div>
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-xs uppercase tracking-wider opacity-80">
-                  {card.category.replace('_', ' ')}
-                </span>
-                <span className="text-xs uppercase tracking-wider font-bold opacity-90">
-                  {card.rarity}
-                </span>
+            {/* Artwork icon at top */}
+            <div className="flex justify-center pt-6 pb-4">
+              <div className="w-20 h-20 rounded-full bg-black/40 flex items-center justify-center border-2 border-white/20">
+                <img
+                  src={card.theme.artwork_url}
+                  alt=""
+                  className="w-16 h-16 rounded-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/Ahri.png';
+                  }}
+                />
               </div>
+            </div>
 
-              <h3 className="text-2xl font-bold mb-2 drop-shadow-lg">
+            {/* Card content */}
+            <div className="px-6 pb-6 text-center flex flex-col" style={{ minHeight: '330px' }}>
+              {/* Title */}
+              <h3 className="text-white font-bold text-lg mb-3 leading-tight min-h-[56px] flex items-center justify-center">
                 {card.title}
               </h3>
-            </div>
 
-            {/* Main Value */}
-            <div className="flex-1 flex items-center justify-center">
-              <p className="text-5xl font-black drop-shadow-2xl text-center">
-                {card.value}
-              </p>
-            </div>
-
-            {/* Footer */}
-            <div>
-              {card.subtitle && (
-                <p className="text-sm opacity-90 mb-3 drop-shadow">
-                  {card.subtitle}
+              {/* Main stat value */}
+              <div className="mb-4 flex-grow flex items-center justify-center">
+                <p className="text-3xl font-black text-white drop-shadow-lg">
+                  {card.value}
                 </p>
-              )}
+              </div>
 
-              {card.shareable && onShare && (
-                <button
-                  onClick={onShare}
-                  className="flex items-center gap-2 text-sm hover:opacity-80 transition-opacity"
+              {/* Description */}
+              <div className="min-h-[60px] flex items-center justify-center">
+                {card.subtitle && (
+                  <p className="text-gray-300 text-sm leading-relaxed px-2">
+                    {card.subtitle}
+                  </p>
+                )}
+              </div>
+
+              {/* Tier indicator */}
+              <div className="mt-4 flex justify-center">
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                    card.rarity === 'legendary'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                      : card.rarity === 'epic'
+                      ? 'bg-yellow-500 text-black'
+                      : card.rarity === 'rare'
+                      ? 'bg-gray-400 text-black'
+                      : 'bg-gray-600 text-white'
+                  }`}
                 >
-                  <Share2 size={16} />
-                  Share
-                </button>
-              )}
+                  {card.rarity === 'legendary' ? 'Prismatic' : card.rarity}
+                </span>
+              </div>
             </div>
-          </div>
-        </div>
-
-        {/* Card Back (Optional - can be used for additional info) */}
-        <div
-          className="absolute inset-0 backface-hidden rotate-y-180"
-          style={{ backgroundColor: card.theme.accent_color }}
-        >
-          <div className="h-full flex items-center justify-center text-white text-2xl font-bold">
-            League of Legends
           </div>
         </div>
       </motion.div>
-    </motion.div>
+
+      {/* Individual Reroll Button */}
+      <motion.button
+        onClick={onReroll}
+        disabled={isRerolling}
+        className="flex items-center gap-2 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-500 hover:to-blue-500 text-white font-bold px-4 py-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <RefreshCw
+          size={16}
+          className={`transition-transform ${isRerolling ? 'animate-spin' : 'group-hover:rotate-180'}`}
+        />
+        <span>Reroll</span>
+      </motion.button>
+    </div>
   );
 }
