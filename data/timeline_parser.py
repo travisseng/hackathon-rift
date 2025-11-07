@@ -55,6 +55,7 @@ class PhaseStats:
     total_damage_done: int = 0
     damage_to_champions: int = 0
     damage_taken: int = 0
+    damage_to_turrets: int = 0
     physical_damage: int = 0
     magic_damage: int = 0
     true_damage: int = 0
@@ -117,6 +118,9 @@ class TimelineAnalysis:
     matchup: str = ""  # e.g., "Zed vs Talon"
     build: List[int] = field(default_factory=list)  # Final item IDs
     team_comp: Dict[str, List[str]] = field(default_factory=dict)  # ally_team and enemy_team
+
+    # All players final stats for context
+    all_players_stats: List[Dict[str, Any]] = field(default_factory=list)
 
 
 def get_match_result(match_data: Dict, puuid: str) -> str:
@@ -254,6 +258,39 @@ def determine_lane_opponent(participant_id: int, match_data: Dict, timeline_data
     return None
 
 
+def extract_all_players_stats(match_data: Dict) -> List[Dict[str, Any]]:
+    """
+    Extract final stats for all players in the match
+
+    Args:
+        match_data: Full match data from Riot API
+
+    Returns:
+        List of player stats dictionaries
+    """
+    all_stats = []
+    for participant in match_data['info']['participants']:
+        stats = {
+            'participant_id': participant['participantId'],
+            'champion': participant['championName'],
+            'role': participant.get('teamPosition', 'UNKNOWN'),
+            'team': participant['teamId'],
+            'kills': participant['kills'],
+            'deaths': participant['deaths'],
+            'assists': participant['assists'],
+            'total_gold': participant['goldEarned'],
+            'cs': participant['totalMinionsKilled'] + participant['neutralMinionsKilled'],
+            'damage_to_champions': participant['totalDamageDealtToChampions'],
+            'damage_taken': participant['totalDamageTaken'],
+            'vision_score': participant['visionScore'],
+            'wards_placed': participant['wardsPlaced'],
+            'wards_killed': participant['wardsKilled']
+        }
+        all_stats.append(stats)
+
+    return all_stats
+
+
 def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> TimelineAnalysis:
     """
     Parse timeline data and create phase-based analysis
@@ -309,7 +346,10 @@ def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> Timelin
     
     # Extract team compositions
     team_comp = extract_team_compositions(match_data, participant_id)
-    
+
+    # Extract all players stats
+    all_players_stats = extract_all_players_stats(match_data)
+
     # Track special events
     special_events = {
         'first_blood': False,
@@ -361,6 +401,7 @@ def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> Timelin
             current_phase.total_damage_done = damage_stats.get('totalDamageDone', 0)
             current_phase.damage_to_champions = damage_stats.get('totalDamageDoneToChampions', 0)
             current_phase.damage_taken = damage_stats.get('totalDamageTaken', 0)
+            current_phase.damage_to_turrets = damage_stats.get('totalDamageDoneToBuildings', 0)
             current_phase.physical_damage = damage_stats.get('physicalDamageDone', 0)
             current_phase.magic_damage = damage_stats.get('magicDamageDone', 0)
             current_phase.true_damage = damage_stats.get('trueDamageDone', 0)
@@ -597,7 +638,8 @@ def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> Timelin
         lane_opponent_id=lane_opponent_id,
         matchup=matchup,
         build=build,
-        team_comp=team_comp
+        team_comp=team_comp,
+        all_players_stats=all_players_stats
     )
     
     return analysis
@@ -618,14 +660,15 @@ def format_for_llm(analysis: TimelineAnalysis, match_result: str) -> str:
     def format_phase(phase: PhaseStats) -> str:
         """Format a single phase"""
         duration_min = (phase.end_time - phase.start_time) / 60
-        
+
         # Calculate averages
         avg_gold_diff = statistics.mean(phase.gold_diff_snapshots) if phase.gold_diff_snapshots else 0
         avg_xp_diff = statistics.mean(phase.xp_diff_snapshots) if phase.xp_diff_snapshots else 0
         avg_cs_diff = statistics.mean(phase.cs_diff_snapshots) if phase.cs_diff_snapshots else 0
-        
-        # CS per minute
-        cs_per_min = (phase.cs + phase.jungle_cs) / duration_min if duration_min > 0 else 0
+
+        # CS per minute (based on time elapsed from game start, not phase duration)
+        time_from_game_start = phase.end_time / 60
+        cs_per_min = (phase.cs + phase.jungle_cs) / time_from_game_start if time_from_game_start > 0 else 0
         
         # KDA ratio
         kda = ((phase.kills + phase.assists) / max(phase.deaths, 1))
@@ -659,7 +702,7 @@ def format_for_llm(analysis: TimelineAnalysis, match_result: str) -> str:
 KDA: {phase.kills}/{phase.deaths}/{phase.assists} ({kda:.2f}) | Dmg: {phase.damage_to_champions//1000}k dealt, {phase.damage_taken//1000}k taken
 CS: {phase.cs + phase.jungle_cs} ({cs_per_min:.1f}/min) | Gold: {phase.total_gold//1000}k | Lvl: {phase.level}
 Diff vs Opponent: {avg_gold_diff:+.0f}g, {avg_xp_diff:+.0f}xp, {avg_cs_diff:+.1f}cs
-Vision: {phase.wards_placed}wards ({phase.control_wards_placed}control wards) / {phase.wards_killed}cleared | Towers: {phase.towers_killed}+{phase.towers_assisted}
+Vision: {phase.wards_placed}wards ({phase.control_wards_placed}control wards) / {phase.wards_killed}cleared | Towers: {phase.towers_killed}+{phase.towers_assisted} | Tower Dmg: {phase.damage_to_turrets//1000}k
 {assessment}
 """
 
@@ -710,9 +753,9 @@ Vision: {phase.wards_placed}wards ({phase.control_wards_placed}control wards) / 
     
     # Build complete output
     output = f"""
-{'='*70}
+{'='*10}
 {analysis.champion_name} ({analysis.role}) | {analysis.matchup} | {match_result} | {analysis.game_duration//60:.0f}min
-{'='*70}
+{'='*10}
 Allies: {', '.join(analysis.team_comp.get('ally_team', []))}
 Enemies: {', '.join(analysis.team_comp.get('enemy_team', []))}
 Build: {build_str}
@@ -745,7 +788,32 @@ Build: {build_str}
             output += f"  {spawn_min}:{spawn_sec:02d} - {obj.objective_type} spawns\n"
 
     output += "\n"
-    
+
+    # All players final stats
+    if analysis.all_players_stats:
+        output += "ALL PLAYERS FINAL STATS:\n"
+        # Separate by team
+        team_100 = [p for p in analysis.all_players_stats if p['team'] == 100]
+        team_200 = [p for p in analysis.all_players_stats if p['team'] == 200]
+
+        output += "Team Blue:\n"
+        for player in team_100:
+            output += f"  {player['champion']} ({player['role']}): "
+            output += f"{player['kills']}/{player['deaths']}/{player['assists']} | "
+            output += f"{player['cs']} CS | {player['total_gold']//1000}k Gold | "
+            output += f"{player['damage_to_champions']//1000}k Dmg | "
+            output += f"Vision: {player['vision_score']} ({player['wards_placed']}w/{player['wards_killed']}c)\n"
+
+        output += "Team Red:\n"
+        for player in team_200:
+            output += f"  {player['champion']} ({player['role']}): "
+            output += f"{player['kills']}/{player['deaths']}/{player['assists']} | "
+            output += f"{player['cs']} CS | {player['total_gold']//1000}k Gold | "
+            output += f"{player['damage_to_champions']//1000}k Dmg | "
+            output += f"Vision: {player['vision_score']} ({player['wards_placed']}w/{player['wards_killed']}c)\n"
+
+        output += "\n"
+
     # Phase breakdowns
     output += format_phase(analysis.early_game)
     output += format_phase(analysis.mid_game)
@@ -768,9 +836,9 @@ Build: {build_str}
                           analysis.late_game.control_wards_placed)
     
     output += f"""
-{'='*60}
+{'='*10}
 SUMMARY
-{'='*60}
+{'='*10}
 Total: {total_kills}/{total_deaths}/{total_assists} ({(total_kills+total_assists)/max(total_deaths,1):.2f}) | CS: {analysis.late_game.cs + analysis.late_game.jungle_cs} | Lvl: {analysis.late_game.level} | Gold: {analysis.late_game.total_gold//1000}k
 Vision: {total_wards_placed}w ({total_control_wards}c) / {total_wards_killed}cleared | Score: {total_wards_placed + (total_wards_killed * 1.5):.1f}
 Trajectory: Early->Mid {"MAINTAINED" if analysis.mid_game.deaths <= analysis.early_game.deaths else "DECLINED"} | Mid->Late {"IMPROVED" if analysis.late_game.kills >= analysis.mid_game.kills else "STABLE" if analysis.late_game.deaths <= 1 else "STRUGGLED"}
