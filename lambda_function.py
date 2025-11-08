@@ -1,10 +1,13 @@
-
 from get_account_data import main
 
 
 def lambda_handler(event, context):
-    # Input Example : event = {"region": "europe", "gamename": "reive", "gametag": "euw"}
-    
+    # Exemple d'input : {
+#   "region": "na1",
+#   "gamename": "na dogbilel",
+#   "gametag": "na1"
+# }
+
     region = event.get("region")
     gamename = event.get("gamename")
     gametag = event.get("gametag")
