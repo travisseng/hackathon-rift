@@ -4,7 +4,7 @@
 </div>
 
 > [!NOTE]  
-> [Try our application here ! ](https://main.d3qf2krxabpu2u.amplifyapp.com/)
+> [ 👉 Try our application here ! 👈 ](https://main.d3qf2krxabpu2u.amplifyapp.com/)
 
 ## Resources
 
