@@ -4,10 +4,18 @@
 </div>
 
 > [!NOTE]  
-> [Click here to access to the frontend repo](https://github.com/travisseng/hackathon-site)
+> [Try our application here ! ](https://main.d3qf2krxabpu2u.amplifyapp.com/)
 
 > [!NOTE]  
-> [Try our application here ! ](https://main.d3qf2krxabpu2u.amplifyapp.com/)
+> [Click here to access to the frontend repo](https://github.com/travisseng/hackathon-site)
+
+
+## Resources
+
+- 🌐 [Access to the frontend repo](https://github.com/travisseng/hackathon-site)
+- 📚 [Acces to the Devpost Hackathon rules ](https://riftrewind.devpost.com/?ref_feature=challenge&ref_medium=your-open-hackathons&ref_content=Recently+ended)
+- 📜 [Access to our Devpost Project documentation](https://devpost.com/software/hackathon-rift-atd)
+
 
 ## Summary 
 
@@ -18,8 +26,9 @@
 - [5. Data Flow](#5-data-flow)
 - [6. How the Coaching Agent Works](#6-how-the-coaching-agent-works)
 - [7. Folder Structure](#7-folder-structure)
-- [8. Team / Authors](#8-team--authors)
-- [9. License](#9-license)
+- [8. Architecture](#8-architecture)
+- [9. Team & Authors](#9-team--authors)
+- [10. License](#10-license)
 
 ## 1. Project Overview
 
@@ -43,6 +52,7 @@ The goal is to make advanced analytics **accessible to every player**, providing
 <div align="center">
   <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/wrappedup.png" alt="wrappedup" width="400"/>
 </div>
+
 
 - 🧠 **AI Coaching Agent** – Analyzes your games using benchmark data from Diamond and Master players. Provides improvement suggestions and highlights strong points to maintain.
 - 💬 **Phase-Based Insights** – Breaks down every match into early, mid, and late game to deliver precise recommendations adapted to each phase.
@@ -295,7 +305,7 @@ GAMES_HISTORY_TABLE {
     
 ```
 
-## 9. Team / Authors
+## 9. Team & Authors
 
 👤 **[Alexandre Coulomb](https://github.com/Skytchup)** *Solution Architect Engineer*
 
