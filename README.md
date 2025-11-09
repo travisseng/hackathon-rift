@@ -8,7 +8,6 @@
 
 ## Resources
 
-- 🌐 [Access to the frontend repo](https://github.com/travisseng/hackathon-site)
 - 📚 [Acces to the Devpost Hackathon rules ](https://riftrewind.devpost.com/?ref_feature=challenge&ref_medium=your-open-hackathons&ref_content=Recently+ended)
 - 📜 [Access to our Devpost Project documentation](https://devpost.com/software/hackathon-rift-atd)
 
@@ -137,6 +136,7 @@ Example:
 .
 ├── README.md
 ├── counters.json
+├── frontend
 ├── images
 │   ├── analysis.png
 │   └── banner.png

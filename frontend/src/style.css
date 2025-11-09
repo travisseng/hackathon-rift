@@ -1,0 +1,66 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --lol-gold: #c89b3c;
+  --lol-gold-light: #f0e6d2;
+  --lol-blue: #0397ab;
+  --lol-blue-dark: #0a1428;
+  --lol-dark: #010a13;
+  --lol-dark-2: #1e2328;
+  --lol-gray: #5b5a56;
+  --lol-red: #d13639;
+  --lol-green: #0ac8b9;
+}
+
+body {
+  margin: 0;
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, var(--lol-dark) 0%, var(--lol-blue-dark) 100%);
+  color: var(--lol-gold-light);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--lol-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--lol-gold);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lol-gold-light);
+}
+
+/* Utility classes */
+.gold-text {
+  color: var(--lol-gold);
+}
+
+.blue-text {
+  color: var(--lol-blue);
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, var(--lol-gold) 0%, var(--lol-gold-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
