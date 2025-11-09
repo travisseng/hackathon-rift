@@ -6,10 +6,6 @@
 > [!NOTE]  
 > [Try our application here ! ](https://main.d3qf2krxabpu2u.amplifyapp.com/)
 
-> [!NOTE]  
-> [Click here to access to the frontend repo](https://github.com/travisseng/hackathon-site)
-
-
 ## Resources
 
 - 🌐 [Access to the frontend repo](https://github.com/travisseng/hackathon-site)
