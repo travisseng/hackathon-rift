@@ -1,287 +1,293 @@
-# League of Legends AI Analytics Platform
+#  League of Legends Rift Rewind Hackathon Coach
 
-AI-powered analytics platform for League of Legends players featuring year-end recaps, progression tracking, and interactive coaching.
+![League Hackathon Screenshot](banner.png)
+> [!NOTE]  
+> [Click here to access to the frontend repo](https://github.com/travisseng/hackathon-site)
 
-## Features
 
-### 1. **Interactive Year-End Recap** 🎴
-- TFT-style card reveal system with 3 primary + 3 secondary stat cards
-- Themed artwork based on stat categories (champion mastery, survival, movement, etc.)
-- Flip/reroll animations with rarity tiers (common, rare, epic, legendary)
-- Social sharing capabilities
+## Summary 
 
-### 2. **Player Progression Tracking** 📈
-- Time series visualization of key metrics (KDA, vision score, CS/min, etc.)
-- Skill radar chart showing combat, vision, farming, objectives, positioning, and teamfight
-- Champion-specific progression tracking
-- Milestone achievements and improvement insights
+- [1. Project Overview](#1-project-overview)
+- [2. Features](#2-features)
+- [3. AWS Services](#3-aws-services)
+- [4. Technical Stack](#4-technical-stack)
+- [5. Data Flow](#5-data-flow)
+- [6. How the Coaching Agent Works](#6-how-the-coaching-agent-works)
+- [7. Folder Structure](#7-folder-structure)
+- [8. Team / Authors](#8-team--authors)
+- [9. License](#9-license)
 
-### 3. **Interactive AI Coaching** 🤖
-- Chat interface with AWS Bedrock-powered AI coach
-- Personalized insights based on match data
-- Actionable recommendations with progress tracking
-- Goal setting and tracking with AI-generated checkpoints
+## 1. Project Overview
 
-## Tech Stack
+![analysis](analysis.png)
 
-### Backend
-- **FastAPI** - Python web framework
-- **Pydantic** - Data validation and serialization
-- **AWS Bedrock** - Generative AI for insights and coaching
-- **DynamoDB** - Match history and player data storage
-- **S3** - Static assets and generated card images
+*Game by game analysis with your personnal agent*
 
-### Frontend
-- **React + TypeScript** - UI framework
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **Framer Motion** - Animations
-- **React Query** - Data fetching and caching
-- **Recharts** - Data visualization
+The **League of Legends Data Intelligence** project combines data analytics, AI coaching, and year-end summaries to help players better understand their in-game performance.  
+Inspired by **Spotify Wrapped** and **Op.gg**, the platform offers a personalized, data-driven experience that’s both fun and insightful.  
 
-## Project Structure
+It allows players to:
+- Visualize their **yearly highlights** (kills, deaths, KDA, most played champions).  
+- Get **AI-based coaching** tailored to each match.  
+- Track their **progression throughout the year** across multiple performance metrics.  
+
+The goal is to make advanced analytics **accessible to every player**, providing actionable insights that can be directly applied to future games.
+
+## 2. Features
+
+- 🧾 **Wrapped Up Summary** – Generates a yearly report of your performance with key stats like kills, pentakills, winrate, and most played champions. It creates a shareable summary card for social fun. 
+![wrappedup](wrappedup.png)
+- 🧠 **AI Coaching Agent** – Analyzes your games using benchmark data from Diamond and Master players. Provides improvement suggestions and highlights strong points to maintain.
+- 💬 **Phase-Based Insights** – Breaks down every match into early, mid, and late game to deliver precise recommendations adapted to each phase.  
+![analysis](analysis.png)
+- 📈 **Evolution Tracking** – Follows your key performance indicators (KDA, damage, deaths) month by month, helping you visualize progress over time. 
+
+![year_analysis](year_analysis.png)
+- 📊 **Yearly Shareable Card** – A visual **summary card** that compiles your key stats from the year in an easy-to-share format, perfect for posting on social media or sharing with friends. 
+
+![card](lol-wrapped-2025-story.png)
+- ☁️ **AWS-Powered Architecture** – Uses AWS Lambda, Bedrock, and S3 for scalable, serverless data processing and real-time access.  
+
+
+## 3. AWS Services
+
+Our architecture is fully cloud-native and built for scalability:
+
+- **AWS Lambda** – Handles data collection, processing, and analysis through modular functions.  
+- **AWS S3** – Stores all player statistics, parsed JSON files, and analysis outputs.  
+- **AWS Bedrock** – Enables LLM-driven reasoning on cleaned datasets and contextual analysis of matches.  
+- **API Gateway** – Exposes endpoints (`/context`, `/summary_year`) for accessing processed data.  
+- **Riot Games API** – Provides the raw game and player data that fuel our analytics pipeline.  
+
+> This architecture allows the system to process match data in near real-time while keeping infrastructure costs low.
+
+## 4. Technical Stack
+
+**Languages & Frameworks**
+- Python
+- Pandas, Requests, Boto3  
+
+**Cloud Infrastructure**
+- AWS Lambda  
+- AWS S3  
+- AWS Bedrock  
+- AWS API Gateway  
+- AWS IAM (for secure roles and access control)
+
+**Data Source**
+- Riot Games API (match data, player stats, champion information)
+- DPM data
+
+**Infrastructure Philosophy**  
+Our philosophy is to provide a **micro-level view of each game**, allowing users to apply concrete advice immediately, while also maintaining a **macro-level view** to observe long-term performance evolution. We also aim to provide **fun and shareable insights** so that players can compare their stats with friends and make the data more engaging and playful.
+
+
+## 5. Data Flow
+
+1. **Collection:** Data is fetched from the Riot Games API via Lambda.  
+2. **Processing:** The data is parsed, cleaned, and structured into minimal JSON files.  
+3. **Storage:** Processed data is saved in S3 buckets for fast retrieval.  
+4. **Analysis:** Bedrock reads these datasets to generate insights using contextual prompts.  
+5. **Delivery:** The API Gateway exposes the results through endpoints such as `/context` and `/summary_year`.
+
+## 6. How the Coaching Agent Works
+
+The **AI Coaching Agent** analyzes match data and benchmarks player performance against statistics from high-ranked players (Diamond and Master tiers).  
+It considers both **quantitative KPIs** (KDA, DPM, objectives) and **qualitative context** (game phase, key events, team dynamics).  
+
+- The analysis is divided into **early, mid, and late game phases**, each focusing on different skills: mechanics, macro management, and team strategy.  
+- The agent produces **actionable feedback**, offering practical advice players can immediately apply in their next match.  
+- KPIs are evaluated monthly, allowing the system to track performance progression analytically over time.  
+- Each match and champion can also receive a **performance score**, making comparisons and improvement tracking intuitive.  
+
+Example:
+> A Kayle player will receive more early-game recommendations related to safe farming and wave management, while a Renekton player will get late-game insights about positioning and teamfight engagement.
+
+
+## 7. Folder Structure
 
 ```
-hackathon-rift/
-├── backend/                # Python FastAPI backend
-│   ├── api/
-│   │   ├── routes/        # API endpoints
-│   │   └── main.py        # FastAPI app entry point
-│   ├── models/            # Pydantic data models
-│   ├── services/          # Business logic
-│   └── utils/             # Helpers and utilities
-│
-├── frontend/              # React frontend
-│   ├── src/
-│   │   ├── components/    # React components
-│   │   ├── services/      # API client
-│   │   └── types/         # TypeScript types
-│   └── package.json
-│
-└─ data/                  # Sample data and datasets
+.
+├── ARCHITECTURE.md
+├── README.md
+├── counters.json
+├── images
+│   ├── analysis.png
+│   └── banner.png
+└── lambdas
+    ├── collection
+    │   └── league_api_call
+    │       ├── get_account_data.py
+    │       ├── lambda_function.py
+    │       └── module
+    │           ├── __init__.py
+    │           ├── endpoints_call.py
+    │           └── parsing_template.py
+    └── ui_integration
+        ├── agentCall
+        ├── callCoachAgentOneGame
+        │   ├── all_game_data.py
+        │   ├── item_mapper.py
+        │   ├── lambda_function.py
+        │   ├── module
+        │   │   └── retrieve_account.py
+        │   ├── parse_data.py
+        │   └── query_timeline.py
+        ├── getAccountData
+        │   └── lambda_function.py
+        ├── getAllMatchIds
+        │   ├── lambda_function.py
+        │   └── retrieveaccount.py
+        ├── getAndReturn
+        │   └── lambda_function.py
+        ├── getContext
+        │   └── lambda_function.py
+        ├── getScoreSummary
+        │   └── lambda_function.py
+        ├── getSummaryyear
+        │   └── lambda_function.py
+        └── websocketRouter
+            └── lambda_function.py
 ```
+## 8. Architecture
 
-## Setup Instructions
+### 1. AWS Architecture
+![aws_archi](aws_architecture.png)
 
-### Prerequisites
-- Python 3.11+
-- Node.js 18+
-- AWS Account (for Bedrock and other services)
-- Riot Games API Key ([Get one here](https://developer.riotgames.com/))
+### 2. Data Collected
 
-### Backend Setup
+```mermaid
+erDiagram
 
-1. **Create and activate virtual environment:**
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+    %% ALL DATA SOURCE
+    DATA_SOURCE_RIOT_API {
+        string summoner_endpoint "/lol/summoner/v4/summoners/by-puuid/{riot_encrypted_puuid}"
+        string league_endpoint "/lol/league/v4/entries/by-puuid/{riot_encrypted_puuid}"
+        string champions_masteries_endpoint "/lol/champion-mastery/v4/champion-masteries/by-puuid/{riot_encrypted_puuid}"
+        string games_history_endpoint "/riot/account/v1/accounts/by-riot-id/{type_gamename}/{type_gametag}"
+        string games_history_timeline_endpoint "/lol/match/v5/matches/{match_id}/timeline"
+    }
 
-2. **Install dependencies:**
-```bash
-pip install -r requirements.txt
-```
+    %% DATA COLLECTED
+    LEAGUE_TABLE {
+        string puuid "primary key"
+        int profileIconId
+        int revisionDate
+        int summonerLevel
+    }
+    SUMMONER_TABLE {
+        int puuid "primary key"
+        int leagueId
+        int queueType
+        int tier
+        int rank
+        int leaguePoints
+        int wins
+        int losses
+        int veteran
+        int inactive
+        string freshBlood
+        string hotStreak
+    }
+    CHAMPIONS_MASTERIES_TABLE {
+        string puuid "primary key"
+        int champion
+        int championLevel
+        int championPoints
+        string lastPlayTime
+        string pointsSinceLastLevel
+        int pointsUntilNextLevel
+        int tokensEarned
+        int markRequiredForNextLevel
+        int markRequiredForNextLevel
 
-3. **Configure environment variables:**
-```bash
-cp .env.example .env
-# Edit .env with your settings
-```
+    }
 
-Required environment variables:
-```env
-RIOT_API_KEY=your_riot_api_key_here
-AWS_REGION=us-east-1
-AWS_ACCESS_KEY_ID=your_aws_key
-AWS_SECRET_ACCESS_KEY=your_aws_secret
-DYNAMODB_TABLE_MATCHES=lol-matches
-DYNAMODB_TABLE_PLAYERS=lol-players
-S3_BUCKET_ASSETS=lol-assets
-```
+    GAME_TIMELINE {
+        string puuid "primary key"
+        json file
+    }
 
-4. **Run the backend:**
-```bash
-cd backend
-uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
-```
+GAMES_HISTORY_TABLE {
+    string match_id 
+    int game_creation
+    int game_duration
+    string game_mode
+    int queue_id
+    string queue_type
+    
+    string champion_name
+    int champion_id
+    string team_position
+    string individual_position
+    
+    string player
+    int death_time
+    int kills_amount
+    int deaths_amount
+    int assists_amount
+    
+    int total_minions_killed
+    int neutral_minions_killed
+    int cs_score
+    
+    int total_damage_dealt
+    int total_damage_to_champions
+    int total_damage_taken
+    int gold_earned
+    boolean win
 
-The API will be available at `http://localhost:8000`
+    int items_0
+    int items_1
+    int items_2
+    int items_3
+    int items_4
+    int items_5
+    int items_6
 
-### Frontend Setup
+    int summoner1_id
+    int summoner2_id
 
-1. **Install dependencies:**
-```bash
-cd frontend
-npm install
-```
+    int primary_style
+    int sub_style
+    int primary_perk
 
-2. **Run the development server:**
-```bash
-npm run dev
-```
+    int pentakills
+    int quadra_kills
+    int triple_kills
+    int skillshots_hit
+    int first_blood_kill
+    int dragon_takedowns
+    int team_baron_kills
+    int epic_monster_steals
 
-The frontend will be available at `http://localhost:5173`
-
-### AWS Setup
-
-1. **Create DynamoDB Tables:**
-```bash
-# Create matches table
-aws dynamodb create-table \
-    --table-name lol-matches \
-    --attribute-definitions AttributeName=match_id,AttributeType=S \
-    --key-schema AttributeName=match_id,KeyType=HASH \
-    --billing-mode PAY_PER_REQUEST
-
-# Create players table
-aws dynamodb create-table \
-    --table-name lol-players \
-    --attribute-definitions AttributeName=puuid,AttributeType=S \
-    --key-schema AttributeName=puuid,KeyType=HASH \
-    --billing-mode PAY_PER_REQUEST
-```
-
-2. **Create S3 Bucket:**
-```bash
-aws s3 mb s3://lol-assets
-```
-
-3. **Enable AWS Bedrock:**
-- Navigate to AWS Bedrock console
-- Request access to Claude models
-- Wait for approval (usually instant)
-
-## Development Workflow
-
-### Running Both Services
-
-Terminal 1 (Backend):
-```bash
-cd backend
-source venv/bin/activate
-uvicorn api.main:app --reload
-```
-
-Terminal 2 (Frontend):
-```bash
-cd frontend
-npm run dev
-```
-
-### Testing the API
-
-Visit `http://localhost:8000/docs` for the interactive API documentation (Swagger UI).
-
-Example API calls:
-```bash
-# Get player primary cards
-curl http://localhost:8000/api/cards/{puuid}/primary
-
-# Generate insights
-curl -X POST http://localhost:8000/api/coaching/{puuid}/insights/generate
-
-# Get progression data
-curl http://localhost:8000/api/progression/{puuid}
-```
-
-## Data Models
-
-### StatCard
-```python
-{
-  "id": "card_most_played_champion_ahri",
-  "category": "champion_mastery",
-  "title": "Your Most Played Champion",
-  "value": "127 games on Ahri",
-  "subtitle": "That's 42 hours of charm spam!",
-  "theme": {
-    "artwork_url": "https://...",
-    "background_color": "#c77dff",
-    "accent_color": "#9d4edd"
-  },
-  "rarity": "epic"
+    int vision_score
+    int wards_placed
+    int wards_killed
+    
+    float kda
 }
+
+
+    DATA_SOURCE_RIOT_API ||--|{ CHAMPIONS_MASTERIES_TABLE : champions_masteries_endpoint
+    DATA_SOURCE_RIOT_API ||--|{ LEAGUE_TABLE : league_endpoint
+    DATA_SOURCE_RIOT_API ||--|{ SUMMONER_TABLE : summoner_endpoint
+    DATA_SOURCE_RIOT_API ||--|{ GAMES_HISTORY_TABLE : games_history_endpoint
+    DATA_SOURCE_RIOT_API ||--|{ GAME_TIMELINE : games_history_timeline_endpoint
+    
 ```
 
-### Card Categories & Themes
-- **Champion Mastery** - Champion splash art (purple theme)
-- **Funny** - Teemo demon for death stats (red theme)
-- **Survival** - Warmog's Armor (green theme)
-- **Movement** - Ghost summoner spell (blue theme)
-- **Geography** - Rift terrain/golem (gray theme)
-- **Milestone** - Trophy/achievement (gold theme)
-- **Social** - Team/friends comparison (purple theme)
-- **Growth** - Progress charts (teal theme)
+## 9. Team / Authors
 
-## API Endpoints
+👤 **[Alexandre Coulomb](https://github.com/Skytchup)** *Solution Architect Engineer*
 
-### Cards
-- `GET /api/cards/{puuid}/primary` - Get primary 3 cards
-- `GET /api/cards/{puuid}/secondary` - Get secondary 3 cards (reroll)
-- `POST /api/cards/{puuid}/generate` - Generate all cards
-- `POST /api/cards/{card_id}/share` - Create shareable image
+👤 **[David Thak](https://github.com/Datha4)** - *NetDevOps Engineer*
 
-### Progression
-- `GET /api/progression/{puuid}` - Get complete progression data
-- `GET /api/progression/{puuid}/metrics/{metric}` - Get time series
-- `GET /api/progression/{puuid}/skill-radar` - Get skill radar data
-- `POST /api/progression/{puuid}/analyze` - Trigger AI analysis
+👤 **[Travis Seng](https://github.com/travisseng)** - *Ph.D - Engineer in AI/Vision/NLP*
 
-### Coaching
-- `GET /api/coaching/{puuid}` - Get all coaching data
-- `GET /api/coaching/{puuid}/insights` - Get AI insights
-- `POST /api/coaching/{puuid}/insights/generate` - Generate new insights
-- `POST /api/coaching/{puuid}/chat` - Chat with AI coach
-- `POST /api/coaching/{puuid}/goals` - Create a goal
+## 10. License
 
-## Next Steps
-
-### Phase 1: Data Ingestion
-- [ ] Implement Riot API integration
-- [ ] Build match history fetching
-- [ ] Set up data storage in DynamoDB
-- [ ] Create data processing pipeline
-
-### Phase 2: Stat Generation
-- [ ] Implement stat calculation engine
-- [ ] Build card generation logic
-- [ ] Create theme mapping system
-- [ ] Generate card pools (primary/secondary)
-
-### Phase 3: AI Integration
-- [ ] Set up AWS Bedrock integration
-- [ ] Design prompts for insight generation
-- [ ] Implement coaching chat
-- [ ] Build recommendation engine
-
-### Phase 4: Frontend Polish
-- [ ] Complete all UI components
-- [ ] Add loading states and error handling
-- [ ] Implement social sharing
-- [ ] Optimize animations and performance
-
-### Phase 5: Deployment
-- [ ] Deploy backend to AWS Lambda
-- [ ] Deploy frontend to S3 + CloudFront
-- [ ] Set up CI/CD pipeline
-- [ ] Configure monitoring and logging
-
-## Contributing
-
-1. Create a feature branch
-2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues or questions, please create an issue in the repository.
+This project is released under the **MIT License**.  
+Feel free to use, modify, and distribute it for educational or research purposes.  
 
 ---
-
-**Built for the League of Legends AI Hackathon** 🎮
