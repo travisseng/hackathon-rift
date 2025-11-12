@@ -123,7 +123,6 @@ Example:
 
 ```
 .
-├── ARCHITECTURE.md
 ├── README.md
 ├── counters.json
 ├── images
