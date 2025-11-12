@@ -1,6 +1,6 @@
 #  League of Legends Rift Rewind Hackathon Coach
 
-![League Hackathon Screenshot](banner.png)
+![League Hackathon Screenshot](https://github.com/travisseng/hackathon-rift/blob/main/images/banner.png)
 > [!NOTE]  
 > [Click here to access to the frontend repo](https://github.com/travisseng/hackathon-site)
 
