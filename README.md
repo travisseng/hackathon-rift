@@ -1,6 +1,6 @@
 #  League of Legends Rift Rewind Hackathon Coach
 <div align="center">
-  <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/banner.png" alt="League Hackathon Screenshot" width="400"/>
+  <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/banner.png" alt="League Hackathon Screenshot"/>
 </div>
 
 > [!NOTE]  
@@ -161,7 +161,7 @@ Example:
 
 ### 1. AWS Architecture
 <div align="center">
-  <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/aws_architecture.png" alt="aws_archi" width="400"/>
+  <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/aws_architecture.png" alt="aws_archi"/>
 </div>
 ### 2. Data Collected
 
