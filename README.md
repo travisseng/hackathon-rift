@@ -19,7 +19,6 @@
 
 ## 1. Project Overview
 
-![analysis](analysis.png)
 
 *Game by game analysis with your personnal agent*
 
@@ -36,16 +35,16 @@ The goal is to make advanced analytics **accessible to every player**, providing
 ## 2. Features
 
 - 🧾 **Wrapped Up Summary** – Generates a yearly report of your performance with key stats like kills, pentakills, winrate, and most played champions. It creates a shareable summary card for social fun. 
-![wrappedup](wrappedup.png)
+![wrappedup](https://github.com/travisseng/hackathon-rift/blob/main/images/wrappedup.png)
 - 🧠 **AI Coaching Agent** – Analyzes your games using benchmark data from Diamond and Master players. Provides improvement suggestions and highlights strong points to maintain.
 - 💬 **Phase-Based Insights** – Breaks down every match into early, mid, and late game to deliver precise recommendations adapted to each phase.  
-![analysis](analysis.png)
+![analysis](https://github.com/travisseng/hackathon-rift/blob/main/images/analysis.png)
 - 📈 **Evolution Tracking** – Follows your key performance indicators (KDA, damage, deaths) month by month, helping you visualize progress over time. 
 
-![year_analysis](year_analysis.png)
+![year_analysis](https://github.com/travisseng/hackathon-rift/blob/main/images/year_analysis.png)
 - 📊 **Yearly Shareable Card** – A visual **summary card** that compiles your key stats from the year in an easy-to-share format, perfect for posting on social media or sharing with friends. 
 
-![card](lol-wrapped-2025-story.png)
+![card](https://github.com/travisseng/hackathon-rift/blob/main/images/lol-wrapped-2025-story.png)
 - ☁️ **AWS-Powered Architecture** – Uses AWS Lambda, Bedrock, and S3 for scalable, serverless data processing and real-time access.  
 
 
@@ -152,7 +151,7 @@ Example:
 ## 8. Architecture
 
 ### 1. AWS Architecture
-![aws_archi](aws_architecture.png)
+![aws_archi](https://github.com/travisseng/hackathon-rift/blob/main/images/aws_architecture.png)
 
 ### 2. Data Collected
 
