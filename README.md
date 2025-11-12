@@ -1,6 +1,8 @@
 #  League of Legends Rift Rewind Hackathon Coach
+<div align="center">
+  <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/banner.png" alt="League Hackathon Screenshot" width="400"/>
+</div>
 
-![League Hackathon Screenshot](https://github.com/travisseng/hackathon-rift/blob/main/images/banner.png)
 > [!NOTE]  
 > [Click here to access to the frontend repo](https://github.com/travisseng/hackathon-site)
 
@@ -40,13 +42,18 @@ The goal is to make advanced analytics **accessible to every player**, providing
 </div>
 - 🧠 **AI Coaching Agent** – Analyzes your games using benchmark data from Diamond and Master players. Provides improvement suggestions and highlights strong points to maintain.
 - 💬 **Phase-Based Insights** – Breaks down every match into early, mid, and late game to deliver precise recommendations adapted to each phase.  
-![analysis](https://github.com/travisseng/hackathon-rift/blob/main/images/analysis.png)
+<div align="center">
+  <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/analysis.png" alt="analysis" width="400"/>
+</div>
 - 📈 **Evolution Tracking** – Follows your key performance indicators (KDA, damage, deaths) month by month, helping you visualize progress over time. 
+<div align="center">
+  <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/year_analysis.png" alt="year_analysis" width="400"/>
+</div>
 
-![year_analysis](https://github.com/travisseng/hackathon-rift/blob/main/images/year_analysis.png)
 - 📊 **Yearly Shareable Card** – A visual **summary card** that compiles your key stats from the year in an easy-to-share format, perfect for posting on social media or sharing with friends. 
-
-![card](https://github.com/travisseng/hackathon-rift/blob/main/images/lol-wrapped-2025-story.png)
+<div align="center">
+  <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/lol-wrapped-2025-story.png" alt="card" width="400"/>
+</div>
 - ☁️ **AWS-Powered Architecture** – Uses AWS Lambda, Bedrock, and S3 for scalable, serverless data processing and real-time access.  
 
 
@@ -153,8 +160,9 @@ Example:
 ## 8. Architecture
 
 ### 1. AWS Architecture
-![aws_archi](https://github.com/travisseng/hackathon-rift/blob/main/images/aws_architecture.png)
-
+<div align="center">
+  <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/aws_architecture.png" alt="aws_archi" width="400"/>
+</div>
 ### 2. Data Collected
 
 ```mermaid
