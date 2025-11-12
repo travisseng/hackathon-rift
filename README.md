@@ -58,7 +58,7 @@ hackathon-rift/
 │   │   └── types/         # TypeScript types
 │   └── package.json
 │
-└── data/                  # Sample data and datasets
+└─ data/                  # Sample data and datasets
 ```
 
 ## Setup Instructions
