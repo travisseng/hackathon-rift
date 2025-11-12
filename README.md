@@ -35,7 +35,9 @@ The goal is to make advanced analytics **accessible to every player**, providing
 ## 2. Features
 
 - 🧾 **Wrapped Up Summary** – Generates a yearly report of your performance with key stats like kills, pentakills, winrate, and most played champions. It creates a shareable summary card for social fun. 
-![wrappedup](https://github.com/travisseng/hackathon-rift/blob/main/images/wrappedup.png)
+<div align="center">
+  <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/wrappedup.png" alt="wrappedup" width="400"/>
+</div>
 - 🧠 **AI Coaching Agent** – Analyzes your games using benchmark data from Diamond and Master players. Provides improvement suggestions and highlights strong points to maintain.
 - 💬 **Phase-Based Insights** – Breaks down every match into early, mid, and late game to deliver precise recommendations adapted to each phase.  
 ![analysis](https://github.com/travisseng/hackathon-rift/blob/main/images/analysis.png)
