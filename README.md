@@ -6,6 +6,8 @@
 > [!NOTE]  
 > [Click here to access to the frontend repo](https://github.com/travisseng/hackathon-site)
 
+> [!NOTE]  
+> [Try our application here ! ]([https://github.com/travisseng/hackathon-site](https://main.d3qf2krxabpu2u.amplifyapp.com/))
 
 ## Summary 
 
