@@ -117,6 +117,7 @@ class TimelineAnalysis:
     # Matchup and build info
     matchup: str = ""  # e.g., "Zed vs Talon"
     build: List[int] = field(default_factory=list)  # Final item IDs
+    build_path: List[Dict[str, Any]] = field(default_factory=list)  # Build path with timestamps: [{"item_id": int, "timestamp": float, "item_name": str}]
     team_comp: Dict[str, List[str]] = field(default_factory=dict)  # ally_team and enemy_team
 
     # All players final stats for context
@@ -284,7 +285,10 @@ def extract_all_players_stats(match_data: Dict) -> List[Dict[str, Any]]:
             'damage_taken': participant['totalDamageTaken'],
             'vision_score': participant['visionScore'],
             'wards_placed': participant['wardsPlaced'],
-            'wards_killed': participant['wardsKilled']
+            'wards_killed': participant['wardsKilled'],
+            'heals_on_teammates': participant.get('totalHealsOnTeammates', 0),
+            'time_ccing_others': participant.get('timeCCingOthers', 0),
+            'damage_self_mitigated': participant.get('damageSelfMitigated', 0)
         }
         all_stats.append(stats)
 
@@ -362,7 +366,8 @@ def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> Timelin
         'barons': 0,
         'towers': 0,
         'objective_spawns': [],
-        'player_deaths': []
+        'player_deaths': [],
+        'build_path': []
     }
     
     # Parse each frame
@@ -401,7 +406,7 @@ def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> Timelin
             current_phase.total_damage_done = damage_stats.get('totalDamageDone', 0)
             current_phase.damage_to_champions = damage_stats.get('totalDamageDoneToChampions', 0)
             current_phase.damage_taken = damage_stats.get('totalDamageTaken', 0)
-            current_phase.damage_to_turrets = damage_stats.get('totalDamageDoneToBuildings', 0)
+            # current_phase.damage_to_turrets = damage_stats.get('totalDamageDoneToBuildings', 0)
             current_phase.physical_damage = damage_stats.get('physicalDamageDone', 0)
             current_phase.magic_damage = damage_stats.get('magicDamageDone', 0)
             current_phase.true_damage = damage_stats.get('trueDamageDone', 0)
@@ -478,11 +483,23 @@ def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> Timelin
             # Objectives - track kills to calculate next spawns
             elif event_type == 'ELITE_MONSTER_KILL':
                 monster_type = event.get('monsterType', '')
+                if monster_type == "HORDE":
+                    monster_type = "GRUBS"  # Standardize name
+                if monster_type == "BARON_NASHOR":
+                    monster_type = "BARON"  # Standardize name
                 killer_team_id = event.get('killerTeamId')
 
                 # Use event's precise timestamp
                 event_timestamp_ms = event.get('timestamp', timestamp_ms)
                 event_timestamp_sec = event_timestamp_ms / 1000
+
+                # Record this objective kill with team and time
+                special_events['objective_spawns'].append(ObjectiveSpawn(
+                    objective_type=monster_type,
+                    spawn_time=event_timestamp_sec,  # This is when it was killed
+                    kill_time=event_timestamp_sec,
+                    killer_team=killer_team_id
+                ))
 
                 # Calculate next spawn based on kill time
                 if 'DRAGON' in monster_type:
@@ -536,7 +553,31 @@ def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> Timelin
             elif event_type == 'WARD_KILL':
                 if event.get('killerId') == participant_id:
                     current_phase.wards_killed += 1
-            
+
+            # Item purchases
+            elif event_type == 'ITEM_PURCHASED':
+                if event.get('participantId') == participant_id:
+                    item_id = event.get('itemId')
+                    if item_id:
+                        # Use event's precise timestamp
+                        event_timestamp_ms = event.get('timestamp', timestamp_ms)
+                        event_timestamp_sec = event_timestamp_ms / 1000
+
+                        # Get item name if mapper is available
+                        item_name = str(item_id)
+                        if ITEM_MAPPER_AVAILABLE:
+                            try:
+                                mapper = get_item_mapper()
+                                item_name = mapper.get_item_name(item_id)
+                            except Exception:
+                                pass
+
+                        special_events['build_path'].append({
+                            'item_id': item_id,
+                            'timestamp': event_timestamp_sec,
+                            'item_name': item_name
+                        })
+
             # Store important events where player participated
             if event_type in ['CHAMPION_KILL', 'ELITE_MONSTER_KILL', 'BUILDING_KILL', 'CHAMPION_SPECIAL_KILL', 'WARD_PLACED', 'WARD_KILL']:
                 # Determine player's role in this event
@@ -588,6 +629,12 @@ def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> Timelin
         kill_time=None
     ))
 
+    initial_objectives.append(ObjectiveSpawn(
+        objective_type='RIFTHERALD',
+        spawn_time=900,
+        kill_time=None
+    ))
+
     # Baron at 20:00 (only if game lasted that long)
     if game_duration >= 1200:
         initial_objectives.append(ObjectiveSpawn(
@@ -603,10 +650,10 @@ def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> Timelin
     deaths_before_objectives = []
     for death in special_events['player_deaths']:
         death_time = death['timestamp']
-        # Check if death occurred within 2min before any objective spawn or kill
+        # Check if death occurred within 1min before any objective spawn or kill
         for obj in all_objectives:
             check_time = obj.kill_time if obj.kill_time else obj.spawn_time
-            if check_time and 0 < (check_time - death_time) <= 120:  # 2 minutes
+            if check_time and 0 < (check_time - death_time) <= 60:  # 1 minute
                 deaths_before_objectives.append({
                     'death_time': death_time,
                     'objective_type': obj.objective_type,
@@ -638,6 +685,7 @@ def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> Timelin
         lane_opponent_id=lane_opponent_id,
         matchup=matchup,
         build=build,
+        build_path=special_events['build_path'],
         team_comp=team_comp,
         all_players_stats=all_players_stats
     )
@@ -645,14 +693,15 @@ def parse_timeline(match_data: Dict, timeline_data: Dict, puuid: str) -> Timelin
     return analysis
 
 
-def format_for_llm(analysis: TimelineAnalysis, match_result: str) -> str:
+def format_for_llm(analysis: TimelineAnalysis, match_result: str, match_data: Dict) -> str:
     """
     Format timeline analysis into LLM-readable text
-    
+
     Args:
         analysis: TimelineAnalysis object
         match_result: 'VICTORY' or 'DEFEAT'
-    
+        match_data: Full match data from Riot API (needed to determine player's team)
+
     Returns:
         Formatted string for LLM consumption
     """
@@ -696,14 +745,11 @@ def format_for_llm(analysis: TimelineAnalysis, match_result: str) -> str:
                 assessment = "STRUGGLING - Too many deaths"
         
         output = f"""
-{'='*60}
-{phase.phase_name.upper()} ({phase.start_time//60:.0f}-{phase.end_time//60:.0f}min)
-{'='*60}
+--- {phase.phase_name.upper()} ({phase.start_time//60:.0f}-{phase.end_time//60:.0f}min) ---
 KDA: {phase.kills}/{phase.deaths}/{phase.assists} ({kda:.2f}) | Dmg: {phase.damage_to_champions//1000}k dealt, {phase.damage_taken//1000}k taken
 CS: {phase.cs + phase.jungle_cs} ({cs_per_min:.1f}/min) | Gold: {phase.total_gold//1000}k | Lvl: {phase.level}
 Diff vs Opponent: {avg_gold_diff:+.0f}g, {avg_xp_diff:+.0f}xp, {avg_cs_diff:+.1f}cs
-Vision: {phase.wards_placed}wards ({phase.control_wards_placed}control wards) / {phase.wards_killed}cleared | Towers: {phase.towers_killed}+{phase.towers_assisted} | Tower Dmg: {phase.damage_to_turrets//1000}k
-{assessment}
+Vision: {phase.wards_placed}wards ({phase.control_wards_placed}control wards) / {phase.wards_killed}cleared | Towers: {phase.towers_killed + phase.towers_assisted}
 """
 
         # Add notable events (condensed)
@@ -741,7 +787,7 @@ Vision: {phase.wards_placed}wards ({phase.control_wards_placed}control wards) / 
         
         return output
     
-    # Format build with item names if mapper available
+    # Format final build with item names if mapper available
     if ITEM_MAPPER_AVAILABLE and analysis.build:
         try:
             mapper = get_item_mapper()
@@ -750,16 +796,27 @@ Vision: {phase.wards_placed}wards ({phase.control_wards_placed}control wards) / 
             build_str = ", ".join(str(item_id) for item_id in analysis.build)
     else:
         build_str = ", ".join(str(item_id) for item_id in analysis.build) if analysis.build else "No items"
+
+    # Format build path with timestamps
+    build_path_str = ""
+    if analysis.build_path:
+        # build_path_str = "\nBuild Path:\n"
+        for item_info in analysis.build_path:
+            minutes = int(item_info['timestamp'] // 60)
+            seconds = int(item_info['timestamp'] % 60)
+            build_path_str += f"{minutes}:{seconds:02d}: {item_info['item_name']}\n"
     
+    # Get player's team
+    participant = next((p for p in match_data['info']['participants']
+                       if p['participantId'] == analysis.participant_id), None)
+    player_team = "Blue" if participant['teamId'] == 100 else "Red"
+
     # Build complete output
     output = f"""
-{'='*10}
-{analysis.champion_name} ({analysis.role}) | {analysis.matchup} | {match_result} | {analysis.game_duration//60:.0f}min
-{'='*10}
-Allies: {', '.join(analysis.team_comp.get('ally_team', []))}
-Enemies: {', '.join(analysis.team_comp.get('enemy_team', []))}
-Build: {build_str}
-
+--- MATCH OVERVIEW ---
+Player to analyze: {analysis.champion_name} ({analysis.role}) | Team {player_team} | {analysis.matchup} | {match_result} | {analysis.game_duration//60:.0f}min
+Build: {build_path_str}
+Final build: {build_str}
 """
     
     # Highlights (condensed)
@@ -776,16 +833,52 @@ Build: {build_str}
     if highlights:
         output += f"Highlights: {' | '.join(highlights)}\n"
 
-    # Objectives (condensed)
-    output += f"Objectives: {analysis.dragons_participated} Dragons, {analysis.barons_participated} Barons/Heralds, {analysis.towers_destroyed} Towers\n"
-
-    # Objective spawn timeline
+    # Calculate team objectives
     if analysis.objective_spawns:
-        output += "Objective Spawns:\n"
+        team_blue_objectives = {'DRAGON': 0, 'BARON': 0, 'HERALD': 0, 'GRUBS': 0}
+        team_red_objectives = {'DRAGON': 0, 'BARON': 0, 'HERALD': 0, 'GRUBS': 0}
+
+        for obj in analysis.objective_spawns:
+            if obj.kill_time and obj.killer_team:
+                # Categorize the monster type
+                if 'DRAGON' in obj.objective_type:
+                    obj_category = 'DRAGON'
+                elif 'BARON' in obj.objective_type:
+                    obj_category = 'BARON'
+                elif 'RIFTHERALD' in obj.objective_type or 'HERALD' in obj.objective_type:
+                    obj_category = 'HERALD'
+                elif 'GRUBS' in obj.objective_type:
+                    obj_category = 'GRUBS'
+                else:
+                    obj_category = obj.objective_type
+
+                if obj.killer_team == 100:
+                    team_blue_objectives[obj_category] = team_blue_objectives.get(obj_category, 0) + 1
+                else:
+                    team_red_objectives[obj_category] = team_red_objectives.get(obj_category, 0) + 1
+
+        # Format team objectives
+        blue_str = f"Blue: {team_blue_objectives['DRAGON']} dragons, {team_blue_objectives['BARON']} barons, {team_blue_objectives['HERALD']} heralds, {team_blue_objectives['GRUBS']} grubs"
+        red_str = f"Red: {team_red_objectives['DRAGON']} dragons, {team_red_objectives['BARON']} barons, {team_red_objectives['HERALD']} heralds, {team_red_objectives['GRUBS']} grubs"
+
+        output += f"Objectives: {blue_str} | {red_str}\n"
+        # output += f"Your Participation: {analysis.dragons_participated} Dragons, {analysis.barons_participated} Barons/Heralds, {analysis.towers_destroyed} Towers\n"
+
+        # Objective spawn timeline
+        output += "Objective Timeline:\n"
         for obj in sorted(analysis.objective_spawns, key=lambda x: x.spawn_time):
             spawn_min = int(obj.spawn_time // 60)
             spawn_sec = int(obj.spawn_time % 60)
-            output += f"  {spawn_min}:{spawn_sec:02d} - {obj.objective_type} spawns\n"
+
+            # If this was a kill (has killer_team), show who got it
+            if obj.kill_time and obj.killer_team:
+                team_name = "Blue" if obj.killer_team == 100 else "Red"
+                output += f"  {spawn_min}:{spawn_sec:02d} - {obj.objective_type} secured by Team {team_name}\n"
+            else:
+                # This is a spawn prediction
+                output += f"  {spawn_min}:{spawn_sec:02d} - {obj.objective_type} spawns\n"
+    else:
+        output += f"Your Participation: {analysis.dragons_participated} Dragons, {analysis.barons_participated} Barons/Heralds, {analysis.towers_destroyed} Towers\n"
 
     output += "\n"
 
@@ -834,16 +927,33 @@ Build: {build_str}
                          analysis.late_game.wards_killed)
     total_control_wards = (analysis.early_game.control_wards_placed + analysis.mid_game.control_wards_placed +
                           analysis.late_game.control_wards_placed)
-    
-    output += f"""
-{'='*10}
-SUMMARY
-{'='*10}
-Total: {total_kills}/{total_deaths}/{total_assists} ({(total_kills+total_assists)/max(total_deaths,1):.2f}) | CS: {analysis.late_game.cs + analysis.late_game.jungle_cs} | Lvl: {analysis.late_game.level} | Gold: {analysis.late_game.total_gold//1000}k
-Vision: {total_wards_placed}w ({total_control_wards}c) / {total_wards_killed}cleared | Score: {total_wards_placed + (total_wards_killed * 1.5):.1f}
-Trajectory: Early->Mid {"MAINTAINED" if analysis.mid_game.deaths <= analysis.early_game.deaths else "DECLINED"} | Mid->Late {"IMPROVED" if analysis.late_game.kills >= analysis.mid_game.kills else "STABLE" if analysis.late_game.deaths <= 1 else "STRUGGLED"}
 
-INSIGHTS:
+    # Get player's additional stats from all_players_stats
+    player_stats = next((p for p in analysis.all_players_stats
+                        if p['participant_id'] == analysis.participant_id), None)
+
+    heals_str = ""
+    cc_str = ""
+    mitigated_str = ""
+
+    if player_stats:
+        heals = player_stats.get('heals_on_teammates', 0)
+        cc_time = player_stats.get('time_ccing_others', 0)
+        mitigated = player_stats.get('damage_self_mitigated', 0)
+
+        if heals > 0:
+            heals_str = f" | Heals: {heals//1000}k"
+        if cc_time > 0:
+            cc_str = f" | CC Time: {cc_time:.0f}s"
+        if mitigated > 0:
+            mitigated_str = f" | Shielding/Mitigation: {mitigated//1000}k"
+
+    output += f"""
+--- SUMMARY ---
+Total: {total_kills}/{total_deaths}/{total_assists} ({(total_kills+total_assists)/max(total_deaths,1):.2f}) | CS: {analysis.late_game.cs + analysis.late_game.jungle_cs} | Lvl: {analysis.late_game.level} | Gold: {analysis.late_game.total_gold//1000}k
+Vision: {total_wards_placed}w ({total_control_wards}c) / {total_wards_killed}cleared{heals_str}{cc_str}{mitigated_str}
+
+--- INSIGHTS ---
 """
     
     # Generate insights
@@ -926,8 +1036,8 @@ INSIGHTS:
 
     # Death timing analysis - critical deaths before objectives
     if analysis.deaths_before_objectives:
-        output += f"  - CRITICAL: {len(analysis.deaths_before_objectives)} death(s) before objectives\n"
-        for death_info in analysis.deaths_before_objectives[:3]:  # Show first 3
+        output += f"  - {len(analysis.deaths_before_objectives)} death(s) before objectives\n"
+        for death_info in analysis.deaths_before_objectives[:10]:  # Show first 3
             death_min = int(death_info['death_time'] // 60)
             death_sec = int(death_info['death_time'] % 60)
             obj_min = int(death_info['objective_time'] // 60)
@@ -985,12 +1095,6 @@ INSIGHTS:
 # Example usage
 if __name__ == "__main__":
     # This would be called with real data
-    print("Timeline Parser Module Loaded")
-    print("Usage: analysis = parse_timeline(match_data, timeline_data, puuid)")
-    print("       formatted_text = format_for_llm(analysis, 'VICTORY')")
-# Example usage
-if __name__ == "__main__":
-    # This would be called with real data
     import json
     with open('match_data.json') as f:
         match_data = json.load(f)
@@ -999,7 +1103,7 @@ if __name__ == "__main__":
     puuid = "jhZVjzvJe6-jJtZZhHhGU5jR31LqnZirdhZj60alrTLo8BJLVy2ZwbvhJulY-GmVeOO9SfmVX2sodA"
     analysis = parse_timeline(match_data, timeline_data, puuid)
     match_result = get_match_result(match_data, puuid)
-    formatted_text = format_for_llm(analysis, match_result)
+    formatted_text = format_for_llm(analysis, match_result, match_data)
     print(formatted_text)
     print("Usage: analysis = parse_timeline(match_data, timeline_data, puuid)")
-    print("       formatted_text = format_for_llm(analysis, 'VICTORY')")
+    print("       formatted_text = format_for_llm(analysis, match_result, match_data)")
