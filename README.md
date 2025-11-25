@@ -102,7 +102,11 @@ Our architecture is fully cloud-native and built for scalability:
 - DPM data
 
 **Infrastructure Philosophy**  
-Our philosophy is to provide a **micro-level view of each game**, allowing users to apply concrete advice immediately, while also maintaining a **macro-level view** to observe long-term performance evolution. We also aim to provide **fun and shareable insights** so that players can compare their stats with friends and make the data more engaging and playful.
+
+Our philosophy is to provide a **micro-level view of each game**, allowing users to apply concrete advice immediately, while also maintaining a **macro-level view** to observe long-term performance evolution. We also aim to provide **fun and shareable insights** so that players can compare their stats with friends and make the data more engaging and playful. 
+
+> [!NOTE]
+> For this project, we chose not to integrate a *conversational LLM to answer questions*, as we found its usage too imprecise for game analysis and fun stats. Instead, we pre-defined the requests so the LLM could reliably extract the most relevant statistics, provide the associated commentary, and deliver a complete analysis based on the key points we consider important
 
 
 ## 5. Data Flow
