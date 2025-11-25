@@ -57,7 +57,7 @@ The goal is to make advanced analytics **accessible to every player**, providing
   <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/analysis.png" alt="analysis" width="400"/>
 </div>
 
-- 📈 **Evolution Tracking** – Follows your key performance indicators (KDA, damage, deaths) month by month, helping you visualize progress over time.
+- 📈 **Evolution Tracking** – Follows your key performance indicators (KDA, damage, deaths) month by month, helping you visualize progress over time (based on the top 10 most played champions).
   
 <div align="center">
   <img src="https://github.com/travisseng/hackathon-rift/blob/main/images/year_analysis.png" alt="year_analysis" width="400"/>
